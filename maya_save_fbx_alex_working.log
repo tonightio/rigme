@@ -1,0 +1,148 @@
+(base) arobin:~ alex$ /Applications/Autodesk/maya2019/Maya.app/Contents/bin/mayapy
+Python 2.7.15 (v2.7.15:ca079a3ea3, Apr 29 2018, 20:59:26)
+[GCC 4.2.1 Compatible Apple LLVM 6.0 (clang-600.0.57)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import maya.standalone
+
+>>>
+>>> maya.standalone.initialize( name='python' )
+This plugin does not support createPlatformOpenGLContext!
+>>> python /Users/alex/Desktop/RigNet-master/maya_save_fbx.py
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'python' is not defined
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", variables )
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'variables' is not defined
+>>> variables= {}
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", variables )
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 12, in <module>
+    import numpy as np
+ImportError: No module named numpy
+>>> pip install numpy
+  File "<stdin>", line 1
+    pip install numpy
+              ^
+SyntaxError: invalid syntax
+>>> import pip
+
+>>>
+>>> pip.main(["install","numpy"])
+Collecting numpy
+  Cache entry deserialization failed, entry ignored
+  Cache entry deserialization failed, entry ignored
+  Downloading https://files.pythonhosted.org/packages/09/96/84cf406fe7d589f3dba9fc0f737e65985a3526c6d8c783f02d4b5a10825d/numpy-1.16.6-cp27-cp27m-macosx_10_9_x86_64.whl (13.9MB)
+    100% |████████████████████████████████| 13.9MB 107kB/s
+Installing collected packages: numpy
+Successfully installed numpy-1.16.6
+You are using pip version 9.0.3, however version 20.2.3 is available.
+You should consider upgrading via the 'pip install --upgrade pip' command.
+0
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", variables )
+Updating pymel with pre-loaded plugins: cacheEvaluator, renderSetup
+Warning: file: /Applications/Autodesk/maya2019/Maya.app/Contents/bin/../scripts/startup/initialStartup.mel line 179: Y-axis is already the Up-axis
+Warning: file: /Users/alex/Library/Preferences/Autodesk/maya/2019/prefs/filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /Users/alex/Library/Preferences/Autodesk/maya/2019/prefs/filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /Users/alex/Library/Preferences/Autodesk/maya/2019/prefs/filePathEditorRegistryPrefs.mel line 6: filePathEditor: Attribute 'aiStandIn.dso' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /Users/alex/Library/Preferences/Autodesk/maya/2019/prefs/filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+AbcExport v1.0 using Alembic 1.7.5 (built Feb  7 2018 13:51:52)
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 93, in <module>
+    cmds.file(obj_name, o=True)
+RuntimeError: File not found: "D:/result_test_v4_clean_64_ori.obj"
+
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 93, in <module>
+    cmds.file(obj_name, o=True)
+RuntimeError: File not found: "/Users/alex/Desktop/RigNet-master/quickstart//result_test_v4_clean_64_ori.obj"
+
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 93, in <module>
+    cmds.file(obj_name, o=True)
+RuntimeError: File not found: "/Users/alex/Desktop/RigNet-master/quickstart/result_test_v4_clean_64_ori.obj"
+
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 93, in <module>
+    cmds.file(obj_name, o=True)
+RuntimeError: File not found: "/Users/alex/Desktop/RigNet-master/quickstart/result_test_v4_clean_64_ori.obj"
+
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 93, in <module>
+    cmds.file(obj_name, o=True)
+RuntimeError: File not found: "/Users/alex/Desktop/RigNet-master/quickstart/result_test_v4_clean_64_ori.obj"
+
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 93, in <module>
+    cmds.file(obj_name, o=True)
+RuntimeError: File not found: "quickstart/result_test_v4_clean_64_ori.obj"
+
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 93, in <module>
+    cmds.file(obj_name, o=True)
+RuntimeError: File not found: "/Users/alex/Desktop/RigNet-master/quickstart/result_test_v4_clean_64_ori.obj"
+
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 93, in <module>
+    cmds.file(obj_name, o=True)
+RuntimeError: File not found: "/Users/alex/Desktop/RigNet-master/quicks_tart/result_test_v4_clean_64_ori.obj"
+
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+File read in  0.021 seconds.
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 97, in <module>
+    root_name, _ = loadInfo(info_name, geo_list[0])
+  File "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py", line 19, in loadInfo
+    f_info = open(info_name,'r')
+IOError: [Errno 2] No such file or directory: '/Users/alex/Desktop/RigNet-master/quick_start\\result_test_v4_clean_64_ori_rig.txt'
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+\File read in  0.012 seconds.
+Logfile: "/Users/alex/Library/Preferences/Autodesk/maya/FBX/Logs/2019.2/maya2019exp.log"
+>>> execfile( "/Users/alex/Desktop/RigNet-master/maya_save_fbx.py")
+result_test_v4_clean_64
+File read in  0.013 seconds.
+Logfile: "/Users/alex/Library/Preferences/Autodesk/maya/FBX/Logs/2019.2/maya2019exp.log"
+>>> ^D
+
+Exception KeyboardInterrupt in <module 'threading' from '/Applications/Autodesk/maya2019/Maya.app/Contents/Frameworks/Python.framework/Versions/Current/lib/python2.7/threading.pyc'> ignored
+(base) arobin:~ alex$ /Applications/Autodesk/maya2019/Maya.app/Contents/bin/mayapy /Users/alex/Desktop/RigNet-master/maya_save_fbx.py
+This plugin does not support createPlatformOpenGLContext!
+pymel.core : INFO : Updating pymel with pre-loaded plugins: cacheEvaluator, renderSetup
+Warning: file: /Applications/Autodesk/maya2019/Maya.app/Contents/bin/../scripts/startup/initialStartup.mel line 179: Y-axis is already the Up-axis
+Warning: file: /Users/alex/Library/Preferences/Autodesk/maya/2019/prefs/filePathEditorRegistryPrefs.mel line 4: filePathEditor: Attribute 'aiImage.filename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /Users/alex/Library/Preferences/Autodesk/maya/2019/prefs/filePathEditorRegistryPrefs.mel line 5: filePathEditor: Attribute 'aiPhotometricLight.aiFilename' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /Users/alex/Library/Preferences/Autodesk/maya/2019/prefs/filePathEditorRegistryPrefs.mel line 6: filePathEditor: Attribute 'aiStandIn.dso' is invalid or is not designated 'usedAsFilename'.
+Warning: file: /Users/alex/Library/Preferences/Autodesk/maya/2019/prefs/filePathEditorRegistryPrefs.mel line 7: filePathEditor: Attribute 'aiVolume.filename' is invalid or is not designated 'usedAsFilename'.
+AbcExport v1.0 using Alembic 1.7.5 (built Feb  7 2018 13:51:52)
+result_test_v4_clean_64
+File read in  0.012 seconds.
+Logfile: "/Users/alex/Library/Preferences/Autodesk/maya/FBX/Logs/2019.2/maya2019exp.log"
