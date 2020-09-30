@@ -1,0 +1,6 @@
+image_background_remove_tool/models/basnet/basnet.pth
+image_background_remove_tool/models/u2net/u2net.pth
+image_background_remove_tool/models/xception_model/model/frozen_inference_graph.pb
+image_background_remove_tool/models/xception_model/model/model.ckpt.data-00000-of-00001
+image_background_remove_tool/libs/*
+output/*

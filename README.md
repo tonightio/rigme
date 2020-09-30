@@ -3,14 +3,17 @@
 
 # Possible libraries needed to install
 
-`pip install google-colab torch torchvision scikit-image trimesh torch-cluster open3d torch_geometric torch_sparse torch_scatter gluoncv pycocotools mxnet tensorboard argparse`
+brew install spatialindex
+
+`pip install google-colab torch torchvision scikit-image trimesh torch-cluster open3d torch_geometric torch_sparse torch_scatter torch_scatter`
+
+pip install google-colab torch torchvision scikit-image trimesh torch-cluster open3d torch_geometric torch_sparse torch_scatter gluoncv pycocotools mxnet tensorboard argparse rtree
 
 rtree:
 
 `pip install Rtree`
 
 For Mac:
-brew install spatialindex
 sudo pip3 install osmnx
 
 

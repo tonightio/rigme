@@ -59,19 +59,21 @@ def create_single_data(mesh_filaname):
     """
     mesh = o3d.io.read_triangle_mesh(mesh_filaname)
     print(mesh)
-    test = mesh.compute_vertex_normals().filter_smooth_simple()
+    #calculate normals
+    test = mesh.compute_vertex_normals()
+
     mesh_w_normals = test
     mesh_v = np.asarray(mesh.vertices)
     mesh_vn = np.asarray(mesh_w_normals.vertex_normals)
     mesh_f = np.asarray(mesh.triangles)
+
 
     mesh_v, translation_normalize, scale_normalize = normalize_obj(mesh_v)
     mesh_normalized = o3d.geometry.TriangleMesh(vertices=o3d.utility.Vector3dVector(mesh_v), triangles=o3d.utility.Vector3iVector(mesh_f))
     o3d.io.write_triangle_mesh(mesh_filaname.replace("_remesh.obj", "_normalized.obj"), mesh_normalized)
 
     # vertices
-    print(mesh_v)
-    print(mesh_vn)
+    # Vectors and Normals are combined into a tuple here
     v = np.concatenate((mesh_v, mesh_vn), axis=1)
     v = torch.from_numpy(v).float()
 
