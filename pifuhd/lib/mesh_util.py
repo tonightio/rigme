@@ -24,6 +24,7 @@ SOFTWARE.
 from skimage import measure
 import numpy as np
 import torch
+import open3d as o3d
 from .sdf import create_grid, eval_grid_octree, eval_grid
 from skimage import measure
 
@@ -99,7 +100,14 @@ def save_obj_mesh(mesh_path, verts, faces=None):
                 continue
             f_plus = f + 1
             file.write('f %d %d %d\n' % (f_plus[0], f_plus[2], f_plus[1]))
+
+
     file.close()
+
+
+    mesh = o3d.io.read_triangle_mesh(mesh_path)
+    test = mesh.filter_smooth_simple(number_of_iterations=1)
+    o3d.io.write_triangle_mesh(mesh_path,test)
 
 
 def save_obj_mesh_with_color(mesh_path, verts, faces, colors):

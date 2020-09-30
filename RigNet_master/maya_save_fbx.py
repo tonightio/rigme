@@ -13,7 +13,7 @@ import numpy as np
 import pymel.core as pm
 import os
 import glob
-import argparse
+
 
 def loadInfo(info_name, geo_name):
     f_info = open(info_name,'r')
@@ -82,7 +82,7 @@ def getGeometryGroups():
 def run(model_id,input_folder):
     print(model_id)
     obj_name = os.path.join(input_folder, '{:s}_remesh.obj'.format(model_id))
-    info_name = os.path.join(input_folder, '{:s}_remesh_rig.txt'.format(model_id))
+    info_name = os.path.join(input_folder, '{:s}_rig.txt'.format(model_id))
     out_name = os.path.join(input_folder, '{:s}.fbx'.format(model_id))
        
     # import obj

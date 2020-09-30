@@ -21,7 +21,7 @@ import matplotlib
 from numpy.linalg import inv
 
 from lib.options import BaseOptions
-from lib.mesh_util import save_obj_mesh_with_color, reconstruction
+from lib.mesh_util import save_obj_mesh, reconstruction
 from lib.data import EvalWPoseDataset, EvalDataset
 from lib.model import HGPIFuNetwNML, HGPIFuMRNet
 from lib.geometry import index
@@ -76,7 +76,7 @@ def gen_mesh(res, net, cuda, data, save_path, thresh=0.5, use_octree=True, compo
             nml = net.nmls.detach().cpu().numpy()[0] * 0.5 + 0.5
             color[left:right] = nml.T
 
-        save_obj_mesh_with_color(save_path, verts, faces, color)
+        save_obj_mesh(save_path, verts, faces)
     except Exception as e:
         print(e)
 
@@ -122,7 +122,7 @@ def gen_mesh_imgColor(res, net, cuda, data, save_path, thresh=0.5, use_octree=Tr
             calib_world = data['calib_world'].numpy()[0]
             verts = np.matmul(np.concatenate([verts, np.ones_like(verts[:,:1])],1), inv(calib_world).T)[:,:3]
 
-        save_obj_mesh_with_color(save_path, verts, faces, color)
+        save_obj_mesh(save_path, verts, faces)
 
     except Exception as e:
         print(e)
