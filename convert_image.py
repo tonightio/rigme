@@ -91,7 +91,7 @@ def main():
 							s3.meta.client.upload_file(t,'rigme-09-2020','output/' + ID + '/' + name)
 
 				##Delete local folder
-				shutil.rmtree(output)
+				#shutil.rmtree(output)
 				return 'Success'
 		except Exception as e:
 			return str(e)
@@ -129,11 +129,11 @@ def obj_rect_convert(file_dir, obj_file_name):
 	except Exception as e:
 		print(e)
 		return False
-
+"""/Applications/Autodesk/maya2019/Maya.app/Contents/bin/mayapy ./RigNet_master/maya_save_fbx.py --id result_alex_clean_78 -i ./output/0a0474ac-037c-11eb-83e7-8c8590b37347/pifuhd_final/recon/"""
 def fbx_convert(model_id, file_dir):
 	try:
 		print(model_id)
-		os.system(PATH_MAYAPY + " ./RigNet_master/maya_save_fbx.py --id " + model_id + " -i + " + file_dir + "/pifuhd_final/recon")
+		os.system(PATH_MAYAPY + " ./RigNet_master/maya_save_fbx.py --id " + model_id + " -i " + file_dir + "/pifuhd_final/recon/")
 		return True
 	except Exception as e:
 		print(e)
