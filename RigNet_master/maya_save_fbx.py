@@ -93,6 +93,9 @@ def run(model_id,input_folder):
     geo_list = getGeometryGroups()
     root_name, _ = loadInfo(info_name, geo_list[0])
     
+    for j in cmds.ls(type="joint"):
+        cmds.setAttr(j + ".segmentScaleCompensate", 0)
+
     # export fbx
     pm.mel.FBXExport(f=out_name)
     
