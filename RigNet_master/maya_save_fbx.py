@@ -96,6 +96,9 @@ def run(model_id,input_folder):
     for j in cmds.ls(type="joint"):
         cmds.setAttr(j + ".segmentScaleCompensate", 0)
 
+    selObj = root_name
+    cmds.scale(1, 1, 1, selObj)
+
     # export fbx
     pm.mel.FBXExport(f=out_name)
     
