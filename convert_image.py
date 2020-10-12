@@ -39,7 +39,7 @@ def main():
 		try:
 			ID = str(uuid.uuid1())
 			output = "./output/" + ID
-			os.makedirs(directory)
+			os.makedirs(output)
 			data_json = request.get_json()
 			image_path = request.files['file']
 			filename = secure_filename(image_path.filename)
