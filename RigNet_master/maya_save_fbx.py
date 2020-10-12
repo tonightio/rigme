@@ -95,6 +95,8 @@ def run(model_id,input_folder):
     
     for j in cmds.ls(type="joint"):
         cmds.setAttr(j + ".segmentScaleCompensate", 0)
+        #otherwise try Scale instead of .segmentScale
+        cmds.setAttr(j + ".segmentScale",1,1,1)
 
     selObj = root_name
     cmds.scale(1, 1, 1, selObj)
