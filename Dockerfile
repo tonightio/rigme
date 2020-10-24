@@ -6,7 +6,7 @@ COPY ./output/ /output/
 COPY ./lightweight_human_pose_estimation/ /lightweight_human_pose_estimation/
 COPY ./image_background_remove_tool/ /image_background_remove_tool/
 WORKDIR /
-RUN pip install torch
+RUN pip install -f https://download.pytorch.org/whl/torch_stable.html torch==latest
 RUN pip install opencv-python
 RUN pip install flask
 RUN pip install open3d==0.9
@@ -14,7 +14,7 @@ RUN pip install google-colab torchvision scikit-image trimesh torch_geometric gl
 RUN pip install torch-cluster
 RUN pip install boto3
 RUN pip install Werkzeug
-RUN pip install torch-scatter==latest+cu101 torch-sparse==latest+cu101 -f https://pytorch-geometric.com/whl/torch-1.4.0.html
+RUN pip install torch-scatter==latest torch-sparse==latest -f https://pytorch-geometric.com/whl/torch-1.4.0.html
 
 RUN apt-get update\
 && apt-get install curl -y\
@@ -36,19 +36,27 @@ RUN curl -L http://download.osgeo.org/libspatialindex/spatialindex-src-1.8.5.tar
 
 RUN sudo apt-get install alien dpkg-dev debhelper build-essential zlib1g-dev -y
 RUN sudo apt-get update
-RUN sudo apt-get install software-properties-common -y 
-RUN sudo add-apt-repository ppa:zeehio/libxp -y
-RUN wget ftp.us.debian.org/debian/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb
-RUN sudo dpkg -i libxp6_1.0.2-2_amd64.deb
 
 
 # Maya installation
-#ADD Autodesk_Maya_2020_ML_Linux_64bit.tgz maya/
-COPY Autodesk_Maya_2020_ML_Linux_64bit.tgz maya/
-RUN mkdir maya/Autodesk 
-RUN tar -xvf maya/Autodesk_Maya_2020_ML_Linux_64bit.tgz -C maya/Autodesk/
-RUN sudo alien -vc maya/Autodesk/Packages/Maya2020_64-2020.0-235.x86_64.rpm
-RUN sudo dpkg -i maya2020-64_2020.0-236_amd64.deb
+RUN wget https://up.autodesk.com/2020/MAYA/18BBDBD5-9A15-4095-8D5E-089938EB8E24/Autodesk_Maya_2020_1_ML_Linux_64bit.tgz -O maya.tgz && \
+    mkdir /maya && tar -xvf maya.tgz -C /maya && \
+    rm maya.tgz && \
+    rpm -Uvh /maya/Packages/Maya*.rpm && \
+    rm -r /maya
+
+# Setup environment
+ENV MAYA_LOCATION=/usr/autodesk/maya/
+ENV MAYAPYPATH=$MAYA_LOCATION/bin:$PATH
+
+# Avoid warning about this variable not set, the path is its default value
+RUN mkdir /var/tmp/runtime-root && \
+    chmod 0700 /var/tmp/runtime-root
+ENV XDG_RUNTIME_DIR=/var/tmp/runtime-root
+
+# Workaround for "Segmentation fault (core dumped)"
+# See https://forums.autodesk.com/t5/maya-general/render-crash-on-linux/m-p/5608552/highlight/true
+ENV MAYA_DISABLE_CIP=1
 
 RUN pip install Rtree
 

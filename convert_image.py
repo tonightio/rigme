@@ -18,7 +18,7 @@ import shutil
 app = Flask(__name__)
 
 ALLOWED_EXTENSIONS = ['.png', '.jpg']
-PATH_MAYAPY = "maya2020_64-2020.0/usr/autodesk/maya2020/bin/mayapy"
+PATH_MAYAPY = "usr/autodesk/maya2020/bin/mayapy"
 PATH_RIGME = "/Users/jasbakshi/Documents/GitHub/RigMe"
 
 s3 = boto3.resource('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
