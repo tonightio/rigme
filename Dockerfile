@@ -1,4 +1,8 @@
-FROM python:3.7.2
+FROM nvidia/cuda:10.2-base
+CMD nvidia-smi
+RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y curl
+RUN apt-get -y install python3
+RUN apt-get -y install python3-pip
 COPY ./convert_image.py /
 COPY ./RigNet_master/ /RigNet_master/
 COPY ./pifuhd/ /pifuhd/
