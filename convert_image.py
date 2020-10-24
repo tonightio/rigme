@@ -18,7 +18,7 @@ import shutil
 app = Flask(__name__)
 
 ALLOWED_EXTENSIONS = ['.png', '.jpg']
-PATH_MAYAPY = "/Applications/Autodesk/maya2019/Maya.app/Contents/bin/mayapy"
+PATH_MAYAPY = "maya2020_64-2020.0/usr/autodesk/maya2020/bin/mayapy"
 PATH_RIGME = "/Users/jasbakshi/Documents/GitHub/RigMe"
 
 s3 = boto3.resource('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
@@ -91,7 +91,7 @@ def main():
 							s3.meta.client.upload_file(t,'rigme-09-2020','output/' + ID + '/' + name)
 
 				##Delete local folder
-				#shutil.rmtree(output)
+				shutil.rmtree(output)
 				return 'Success'
 		except Exception as e:
 			return str(e)
