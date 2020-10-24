@@ -10,7 +10,7 @@ COPY ./output/ /output/
 COPY ./lightweight_human_pose_estimation/ /lightweight_human_pose_estimation/
 COPY ./image_background_remove_tool/ /image_background_remove_tool/
 WORKDIR /
-RUN pip3 install -f https://download.pytorch.org/whl/torch_stable.html torch==latest
+RUN pip3 install -f https://download.pytorch.org/whl/torch_stable.html torch==1.6.0+cu101
 RUN pip3 install opencv-python
 RUN pip3 install flask
 RUN pip3 install open3d==0.9
@@ -18,7 +18,7 @@ RUN pip3 install google-colab torchvision scikit-image trimesh torch_geometric g
 RUN pip3 install torch-cluster
 RUN pip3 install boto3
 RUN pip3 install Werkzeug
-RUN pip3 install torch-scatter==latest torch-sparse==latest -f https://pytorch-geometric.com/whl/torch-1.4.0.html
+RUN pip3 install torch-scatter==1.6.0+cu101 torch-sparse==1.6.0+cu101 -f https://pytorch-geometric.com/whl/torch-1.6.0.html
 
 RUN apt-get update\
 && apt-get install curl -y\
