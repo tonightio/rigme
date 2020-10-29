@@ -6,7 +6,7 @@ COPY ./output/ /output/
 COPY ./lightweight_human_pose_estimation/ /lightweight_human_pose_estimation/
 COPY ./image_background_remove_tool/ /image_background_remove_tool/
 WORKDIR /
-RUN pip install torch==1.6.0+cu101
+RUN pip install torch==1.6.0
 RUN pip install opencv-python
 RUN pip install flask
 RUN pip install open3d==0.9
@@ -14,7 +14,7 @@ RUN pip install google-colab torchvision scikit-image trimesh torch_geometric gl
 RUN pip install torch-cluster
 RUN pip install boto3
 RUN pip install Werkzeug
-RUN pip install torch-scatter==1.6.0+cu101 torch-sparse==1.6.0+cu101 -f https://pytorch-geometric.com/whl/torch-1.6.0.html
+RUN pip install torch-scatter==2.0.5+cu101 torch-sparse==0.6.7+cu101 -f https://pytorch-geometric.com/whl/torch-1.6.0.html
 
 RUN apt-get update\
 && apt-get install curl -y\
@@ -39,11 +39,11 @@ RUN sudo apt-get update
 
 
 # Maya installation
-RUN wget https://up.autodesk.com/2020/MAYA/18BBDBD5-9A15-4095-8D5E-089938EB8E24/Autodesk_Maya_2020_1_ML_Linux_64bit.tgz -O maya.tgz && \
-    mkdir /maya && tar -xvf maya.tgz -C /maya && \
-    rm maya.tgz && \
-    rpm -Uvh /maya/Packages/Maya*.rpm && \
-    rm -r /maya
+COPY Autodesk_Maya_2020_ML_Linux_64bit.tgz maya/
+RUN mkdir maya/Autodesk 
+RUN tar -xvf maya/Autodesk_Maya_2020_ML_Linux_64bit.tgz -C maya/Autodesk/
+RUN sudo alien -vc maya/Autodesk/Packages/Maya2020_64-2020.0-235.x86_64.rpm
+RUN sudo dpkg -i maya2020-64_2020.0-236_amd64.deb
 
 # Setup environment
 ENV MAYA_LOCATION=/usr/autodesk/maya/
