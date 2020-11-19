@@ -14,6 +14,7 @@ RUN pip install google-colab torchvision scikit-image trimesh torch_geometric gl
 RUN pip install torch-cluster
 RUN pip install boto3
 RUN pip install Werkzeug
+RUN pip install torch-cluster==1.5.7+cu101 -f https://pytorch-geometric.com/whl/torch-1.6.0.html
 RUN pip install torch-scatter==2.0.5+cu101 torch-sparse==0.6.7+cu101 -f https://pytorch-geometric.com/whl/torch-1.6.0.html
 
 RUN apt-get update\

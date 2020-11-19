@@ -15,14 +15,34 @@ import boto3
 import uuid 
 import shutil
 
+from botocore.exceptions import ClientError
+from typing import Optional
+
+
 app = Flask(__name__)
 
 ALLOWED_EXTENSIONS = ['.png', '.jpg']
 PATH_MAYAPY = "usr/autodesk/maya2020/bin/mayapy"
 PATH_RIGME = "/Users/jasbakshi/Documents/GitHub/RigMe"
 
+# Define the configuration rules
+cors_configuration = {
+    'CORSRules': [{
+        'AllowedHeaders': ['Authorization'],
+        'AllowedMethods': ['GET','PUT'],
+        'AllowedOrigins': ['*'], # replace with https://*.rigme.io once ssl works
+        'ExposeHeaders': ['GET'],
+        'MaxAgeSeconds': 3000
+    }]
+}
+
+
 s3 = boto3.resource('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
              aws_secret_access_key= "***REMOVED***", region_name='us-west-2')
+s3_client = boto3.client('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
+             aws_secret_access_key= "***REMOVED***", region_name='us-west-2')
+s3_client.put_bucket_cors(Bucket='rigme-09-2020',
+                   CORSConfiguration=cors_configuration)
 
 @app.errorhandler(Exception)
 def server_error(err):
@@ -69,16 +89,16 @@ def main():
 				print('converting to obj')
 				print(output)
 				#pre_process_image(image_path)
-				t = convert_to_3d(output, output, res)
-				print(t)
+				#t = convert_to_3d(output, output, res)
+				#print(t)
 				obj_file = "result_" + filename + "_clean_" + res
 				print(output + "/" + obj_file + "_remesh.obj")
 				print(obj_file)
 				print('predicting to 3d rect')
-				obj_rect_convert(output, obj_file)
+				#obj_rect_convert(output, obj_file)
 				print('converting to fbx')
-				fbx_convert(obj_file, output)
-
+				#fbx_convert(obj_file, output)
+			    
 				##AWS Upload
 
 				for root, dirs, files in os.walk(output, topdown=False):
@@ -89,10 +109,16 @@ def main():
 							print(root.split('/')[1])
 							print(t)
 							s3.meta.client.upload_file(t,'rigme-09-2020','output/' + ID + '/' + name)
+				url = create_presigned_url(
+			        "rigme-09-2020",
+			        'output/' + ID + '/' + filename + '_clean_rect.txt' # obj_file
+		    	)
 
 				##Delete local folder
 				shutil.rmtree(output)
-				return 'Success'
+				return {
+			        'url': url
+			    }
 		except Exception as e:
 			return str(e)
 
@@ -138,6 +164,37 @@ def fbx_convert(model_id, file_dir):
 	except Exception as e:
 		print(e)
 		return False
+
+def create_presigned_url(
+        bucket_name: str, object_name: str, expiration=3600) -> Optional[str]:
+    """Generate a presigned URL to share an s3 object
+
+    Arguments:
+        bucket_name {str} -- Required. s3 bucket of object to share
+        object_name {str} -- Required. s3 object to share
+
+    Keyword Arguments:
+        expiration {int} -- Expiration in seconds (default: {3600})
+
+    Returns:
+        Optional[str] -- Presigned url of s3 object. If error, returns None.
+    """
+
+    # Generate a presigned URL for the S3 object
+    try:
+        # note that we are passing get_object as the operation to perform
+        response = s3_client.generate_presigned_url('get_object',
+                                                    Params={
+                                                        'Bucket': bucket_name,
+                                                        'Key': object_name
+                                                    },
+                                                    ExpiresIn=expiration)
+    except ClientError as e:
+        logging.error(e)
+        return None
+
+    # The response contains the presigned URL
+    return response
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80)#beginning once only
