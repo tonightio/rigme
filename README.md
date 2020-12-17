@@ -41,7 +41,14 @@ Then use this command to send a picture to convert into a 3d model:
 
  curl -X POST http://0.0.0.0:80/api/convert_picture --form file=@./sample_images/test_v4.jpg --form resolution=78
 
+# Setting up Blender
 
+download:
+
+https://www.blender.org/download/
+
+execute:
+echo "alias blender=###PATH_TO_BLENDER.APP/Contents/MacOS/blender" >> ~/.bash_profile
 
 
 
