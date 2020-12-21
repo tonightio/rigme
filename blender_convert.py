@@ -4,6 +4,15 @@ import glob
 import argparse
 
 def loadInfo(info_name, geo_name):
+	#setting up the blender rig
+	armature = bpy.data.armatures.new("Armature")
+	rig = bpy.data.objects.new("Armature", armature)
+	context.scene.collection.objects.link(rig)
+
+	context.view_layer.objects.active = rig
+	bpy.ops.object.editmode_toggle()
+	current_bone = armature.edit_bones.new(bone[0])
+
     f_info = open(info_name,'r')
     joint_pos = {}
     joint_hier = {}
@@ -15,7 +24,28 @@ def loadInfo(info_name, geo_name):
         if word[0] == 'root':
             root_pos = joint_pos[word[1]]
             root_name = word[1]
-            cmds.joint(p=(root_pos[0], root_pos[1],root_pos[2]), name = root_name)
+            # this is setting up the root position of the joint
+            #cmds.joint(p=(root_pos[0], root_pos[1],root_pos[2]), name = root_name)
+            # root bone in chain
+			# create bone at armature origin and set its length
+			
+			current_bone.head = root_pos
+			#need to figure out how the rest of the ifnormation belo needs to be filled out
+			'''
+			length = list(bones.values())[i+1][0][1]
+			current_bone.tail = [0, 0, length]
+
+			# rotate bone
+			quat_armature_space = Quaternion(bone[1][1])
+			current_bone.transform(quat_armature_space.to_matrix())
+			        
+			# set position
+			current_bone.translate(Vector(bone[1][0]))
+
+			# save bone, its tail position (next bone will be moved to it) and quaternion rotation
+			parent_bone = current_bone
+			parent_bone_tail = current_bone.tail
+			parent_bone_quat_armature_space = quat_armature_space'''
         if word[0] == 'hier':
             if word[1] not in joint_hier.keys():
                 joint_hier[word[1]] = [word[2]]
@@ -25,6 +55,58 @@ def loadInfo(info_name, geo_name):
             skin_item = word[1:]
             joint_skin.append(skin_item)
     f_info.close()
+
+    # below is the code in order to implement bone making in the rig for blender need to implement for the current problem
+    '''
+	for i, bone in enumerate(bones.items()):
+	    # create new bone
+	    current_bone = armature.edit_bones.new(bone[0])
+	        
+	    # last bone in chain
+	    elif i == (len(bones) - 1):
+	        # create bone at armature origin and set its length
+	        current_bone.head = [0, 0, 0]
+	        current_bone.tail = [0, 0, 1]
+	        
+	        # rotate bone
+	        current_bone_quat_parent_space = Quaternion(bone[1][1])
+	        # like matrices, quaternions can be multiplied to accumulate rotational values
+	        transform_quat = parent_bone_quat_armature_space @ current_bone_quat_parent_space
+	        current_bone.transform(transform_quat.to_matrix())
+
+	        # set position
+	        current_bone.translate(Vector(parent_bone_tail))
+	        
+	        # connect
+	        current_bone.parent = parent_bone
+	        current_bone.use_connect = True
+	        
+	    else:
+	        # create bone at armature origin and set its length
+	        current_bone.head = [0, 0, 0]
+	        length = list(bones.values())[i+1][0][1]
+	        current_bone.tail = [0, 0, length]
+	        
+	        # rotate bone
+	        current_bone_quat_parent_space = Quaternion(bone[1][1])
+	        # like matrices, quaternions can be multiplied to accumulate rotational values
+	        transform_quat = parent_bone_quat_armature_space @ current_bone_quat_parent_space
+	        current_bone.transform(transform_quat.to_matrix())
+	        
+	        # set position
+	        current_bone.translate(Vector(parent_bone_tail))
+	        
+	        # connect
+	        current_bone.parent = parent_bone
+	        current_bone.use_connect = True
+	        
+	        # save bone, its tail position (next bone will be moved to it) and quaternion rotation
+	        parent_bone = current_bone
+	        parent_bone_tail = current_bone.tail
+	        parent_bone_quat_armature_space = transform_quat
+
+	bpy.ops.object.editmode_toggle()
+	'''
 
     '''
     keeping the above code because it parses the _rig.txt file into its appropriate dictionary/list
