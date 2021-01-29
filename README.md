@@ -51,5 +51,10 @@ execute:
 echo "alias blender=###PATH_TO_BLENDER.APP/Contents/MacOS/blender" >> ~/.bash_profile
 
 
+#####IMPORTANT CODE########
+Xvfb :19 -screen 0 1024x768x16 &
+export DISPLAY=:19
+
+
 
 

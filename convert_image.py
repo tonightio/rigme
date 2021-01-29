@@ -14,28 +14,61 @@ from os import path
 import boto3
 import uuid 
 import shutil
-
 from botocore.exceptions import ClientError
 from typing import Optional
+from flask_cors import CORS
+from binascii import a2b_base64
+import base64
+from base64 import b64decode
+from string import Template
+import base64
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.image import MIMEImage
+from email.mime.base import MIMEBase
+import smtplib
+import codecs
+from bs4 import BeautifulSoup
 
+from email import encoders
 
 app = Flask(__name__)
+CORS(app)
 
 ALLOWED_EXTENSIONS = ['.png', '.jpg']
-PATH_MAYAPY = "usr/autodesk/maya2020/bin/mayapy"
+PATH_MAYAPY = "../../../usr/autodesk/maya2020/bin/mayapy"
 PATH_RIGME = "/Users/jasbakshi/Documents/GitHub/RigMe"
 
-# Define the configuration rules
 cors_configuration = {
     'CORSRules': [{
         'AllowedHeaders': ['Authorization'],
         'AllowedMethods': ['GET','PUT'],
         'AllowedOrigins': ['*'], # replace with https://*.rigme.io once ssl works
         'ExposeHeaders': ['GET'],
-        'MaxAgeSeconds': 3000
+        'MaxAgeSeconds': 86400
     }]
 }
 
+import boto3
+from botocore.exceptions import ClientError
+
+# Replace sender@example.com with your "From" address.
+# This address must be verified with Amazon SES.
+SENDER = "hello@3dconvert.me"
+
+# Specify a configuration set. If you do not want to use a configuration
+# set, comment the following variable, and the 
+# ConfigurationSetName=CONFIGURATION_SET argument below.
+#CONFIGURATION_SET = "ConfigSet"
+
+# If necessary, replace us-west-2 with the AWS Region you're using for Amazon SES.
+AWS_REGION = "us-west-2"
+
+# The subject line for the email.
+SUBJECT = "3DConvertMe files are ready!"
+
+CHARSET = "UTF-8"
 
 s3 = boto3.resource('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
              aws_secret_access_key= "***REMOVED***", region_name='us-west-2')
@@ -43,6 +76,14 @@ s3_client = boto3.client('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
              aws_secret_access_key= "***REMOVED***", region_name='us-west-2')
 s3_client.put_bucket_cors(Bucket='rigme-09-2020',
                    CORSConfiguration=cors_configuration)
+ses_client = boto3.client('ses',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
+             aws_secret_access_key= "***REMOVED***")
+
+
+import ssl
+context = ssl.SSLContext()
+context.load_cert_chain('STAR_rigme_io.pem','private.key')
+context.load_verify_locations('STAR_rigme_io_ca.pem')
 
 @app.errorhandler(Exception)
 def server_error(err):
@@ -51,20 +92,33 @@ def server_error(err):
 
 @app.route('/')
 def home_endpoint():
-    return 'Hello World!'
+    return 'Welcome to the RigMe API from Jas and Alex!'
 
 @app.route('/api/convert_picture', methods=['POST'])
 def main():
 	if request.method == 'POST':
+		print("Form: " + str(request.form))
+		print("Files: " + str(request.files))
 		try:
+			RECIPIENT =  request.form.get('recepient')
 			ID = str(uuid.uuid1())
-			output = "./output/" + ID
+			output = "./output/" + RECIPIENT + ID
 			os.makedirs(output)
 			data_json = request.get_json()
-			image_path = request.files['file']
-			filename = secure_filename(image_path.filename)
+			#image_path = request.files['file']
+			image_data = request.form.get('file')
+			header, encoded = image_data.split(",", 1)
+			data = b64decode(encoded)
+			#filename = secure_filename(image_path.filename)
+			filename = ID + '.png'
 			img = os.path.join(output, filename)
-			image_path.save(img)
+			with open(img,'wb') as fh:
+				fh.write(data)
+			#binary_data = a2b_base64(image_data)
+			#fd = open(img,'wb')
+			#fd.write(binary_data)
+			#fd.close()
+			#image_path.save(img)
 			res = request.form.get('resolution')
 			print(res)
 			if path.exists(img) != True:
@@ -77,7 +131,7 @@ def main():
 			#Generate random ID
 			
 			if file_extension in ALLOWED_EXTENSIONS:
-				clean_image_path = clean_background_Image(img, filename, ID)
+				clean_image_path = clean_background_Image(img, filename, ID, RECIPIENT)
 				print(clean_image_path)
 				if path.exists(clean_image_path) != True:
 					raise Exception("Cleaning Background of Image incomplete")
@@ -89,16 +143,19 @@ def main():
 				print('converting to obj')
 				print(output)
 				#pre_process_image(image_path)
-				#t = convert_to_3d(output, output, res)
-				#print(t)
+				t = convert_to_3d(output, output, res)
+				print(t)
 				obj_file = "result_" + filename + "_clean_" + res
 				print(output + "/" + obj_file + "_remesh.obj")
 				print(obj_file)
 				print('predicting to 3d rect')
-				#obj_rect_convert(output, obj_file)
-				print('converting to fbx')
+				obj_rect_convert(output, obj_file)
+				print('converting to glb')
 				#fbx_convert(obj_file, output)
-			    
+				print(output + "/pifuhd_final/recon/" + obj_file + "_remesh.obj")
+				print(output + "/pifuhd_final/recon/" + obj_file + "_remesh_rig.txt")
+				print(output + "/pifuhd_final/recon/" + obj_file + ".glb")
+				blender_glb_convert(output + "/pifuhd_final/recon/" + obj_file + "_remesh.obj", output + "/pifuhd_final/recon/" + obj_file + "_remesh_rig.txt", output + "/pifuhd_final/recon/" + obj_file + ".glb")
 				##AWS Upload
 
 				for root, dirs, files in os.walk(output, topdown=False):
@@ -109,30 +166,127 @@ def main():
 							print(root.split('/')[1])
 							print(t)
 							s3.meta.client.upload_file(t,'rigme-09-2020','output/' + ID + '/' + name)
-				url = create_presigned_url(
-			        "rigme-09-2020",
-			        'output/' + ID + '/' + filename + '_clean_rect.txt' # obj_file
-		    	)
-
+				
+				fbx_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + obj_file + '.fbx')
+				#fbx_file
+			    	
+				glb_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + obj_file + '.glb')
+				# glb_file
+			    	
+				stl_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + obj_file + '.stl')
+				# stl_file
+		    		
+				obj_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + filename + '_remesh.obj')
+				# obj_file
 				##Delete local folder
 				shutil.rmtree(output)
+				#os.rmdir('output/' + ID)
+				with open("email.html", "r", encoding='utf-8') as f:
+				    base_text= f.read()
+
+				t = Template(base_text).safe_substitute(obj = obj_url, stl = stl_url, fbx = fbx_url,glb = glb_url)
+				USERNAME_SMTP = "***REMOVED***"
+
+# Replace smtp_password with your Amazon SES SMTP password.
+				PASSWORD_SMTP = "***REMOVED***"
+				HOST = "***REMOVED***"
+				PORT = 587
+
+				msg = MIMEMultipart('related')
+# Add subject, from and to lines.
+				msg['Subject'] = SUBJECT 
+				msg['From'] = SENDER 
+				msg['To'] = RECIPIENT
+				msg_body = MIMEMultipart('alternative')
+				htmlpart = MIMEText(t.encode(CHARSET), 'html', CHARSET)
+				msg_body.attach(htmlpart)
+				msg.attach(msg_body)
+				with open('static/obj.png', 'rb') as f:
+    # set attachment mime and file name, the image type is png
+				    mime = MIMEBase('image', 'png', filename='obj.png')
+    # add required header data:
+				    mime.add_header('Content-Disposition', 'attachment', filename='obj.png')
+				    mime.add_header('X-Attachment-Id', '0')
+				    mime.add_header('Content-ID', '<0>')
+				    # read attachment file content into the MIMEBase object
+				    mime.set_payload(f.read())
+				    # encode with base64
+				    encoders.encode_base64(mime)
+    # add MIMEBase object to MIMEMultipart object
+				    msg.attach(mime)
+    
+				with open('static/fbx.png', 'rb') as f:
+				    # set attachment mime and file name, the image type is png
+				    mime = MIMEBase('image', 'png', filename='fbx.png')
+				    # add required header data:
+				    mime.add_header('Content-Disposition', 'attachment', filename='fbx.png')
+				    mime.add_header('X-Attachment-Id', '2')
+				    mime.add_header('Content-ID', '<2>')
+				    # read attachment file content into the MIMEBase object
+				    mime.set_payload(f.read())
+				    # encode with base64
+				    encoders.encode_base64(mime)
+				    # add MIMEBase object to MIMEMultipart object
+				    msg.attach(mime)
+    
+				with open('static/stl.png', 'rb') as f:
+    # set attachment mime and file name, the image type is png
+				    mime = MIMEBase('image', 'png', filename='stl.png')
+    # add required header data:
+				    mime.add_header('Content-Disposition', 'attachment', filename='stl.png')
+				    mime.add_header('X-Attachment-Id', '1')
+				    mime.add_header('Content-ID', '<1>')
+    # read attachment file content into the MIMEBase object
+				    mime.set_payload(f.read())
+    # encode with base64
+				    encoders.encode_base64(mime)
+    # add MIMEBase object to MIMEMultipart object
+				    msg.attach(mime)
+
+				with open('static/glb.png', 'rb') as f:
+    # set attachment mime and file name, the image type is png
+				    mime = MIMEBase('image', 'png', filename='glb.png')
+				    mime.add_header('Content-Disposition', 'attachment', filename='glb.png')
+				    mime.add_header('X-Attachment-Id', '3')
+				    mime.add_header('Content-ID', '<3>')
+    # read attachment file content into the MIMEBase object
+				    mime.set_payload(f.read())
+    # encode with base64
+				    encoders.encode_base64(mime)
+    # add MIMEBase object to MIMEMultipart object
+				    msg.attach(mime)
+				print('SENDING Email to: ' + RECIPIENT)
+				try:
+				    server = smtplib.SMTP(HOST, PORT)
+				    server.ehlo()
+				    server.starttls()
+    #stmplib docs recommend calling ehlo() before & after starttls()
+				    server.ehlo()
+				    server.login(USERNAME_SMTP, PASSWORD_SMTP)
+				    server.sendmail(SENDER, RECIPIENT, msg.as_string())
+				    server.close()
+				except ClientError as e:
+				    print(e.response['Error']['Message'])
 				return {
-			        'url': url
-			    }
+			        	'fbx_url': fbx_url,
+			        	'glb_url':glb_url,
+			        	'stl_url':stl_url,
+			        	'obj_url':obj_url
+			    	}
 		except Exception as e:
 			return str(e)
 
 def convert_to_3d(file_dir, output, res):
 	try:
-		os.system("python ./pifuhd/apps/simple_test.py -o " + output + " -c ./pifuhd/checkpoints/pifuhd.pt -r " + res + " --use_rect -i " + file_dir)
+		os.system("python3 ./pifuhd/apps/simple_test.py -o " + output + " -c ./pifuhd/checkpoints/pifuhd.pt -r " + res + " --use_rect -i " + file_dir)
 		return True
 	except:
 		return False
 
 
-def clean_background_Image(file_dir, file_name, ID):
+def clean_background_Image(file_dir, file_name, ID, RECIPIENT):
 	try:
-		output = "./output/" + ID + "/" + file_name + "_clean.png"
+		output = "./output/" + RECIPIENT + ID + "/" + file_name + "_clean.png"
 		print(output)
 		os.system("python3 ./image_background_remove_tool/main.py -o " + output + " -m u2net -prep bbd-fastrcnn -postp rtb-bnb -i " + file_dir)
 		return output
@@ -141,7 +295,7 @@ def clean_background_Image(file_dir, file_name, ID):
 
 def rect_Image(file_dir, file_name):
 	try:
-		os.system("python ./lightweight_human_pose_estimation/process_image.py --input " + file_dir)
+		os.system("python3 ./lightweight_human_pose_estimation/process_image.py --input " + file_dir)
 		return True
 	except Exception as e:
 		print(e)
@@ -150,7 +304,7 @@ def rect_Image(file_dir, file_name):
 def obj_rect_convert(file_dir, obj_file_name):
 	try:
 		print(file_dir,obj_file_name)
-		os.system("python ./RigNet_master/quick_start.py -i " + file_dir + "/pifuhd_final/recon/ -o " + obj_file_name)
+		os.system("python3 ./RigNet_master/quick_start.py -i " + file_dir + "/pifuhd_final/recon/ -o " + obj_file_name)
 		return True
 	except Exception as e:
 		print(e)
@@ -160,6 +314,15 @@ def fbx_convert(model_id, file_dir):
 	try:
 		print(model_id)
 		os.system(PATH_MAYAPY + " ./RigNet_master/maya_save_fbx.py --id " + model_id + " -i " + file_dir + "/pifuhd_final/recon/")
+		return True
+	except Exception as e:
+		print(e)
+		return False
+
+def blender_glb_convert(object_dir, joint_text_file_dir, save_path):
+	try:
+		#print(model_id)
+		os.system("blender --background --python ./loadskeleton.py -- -o=" + object_dir + " -t=" + joint_text_file_dir + " -s=" + save_path)
 		return True
 	except Exception as e:
 		print(e)
@@ -197,5 +360,5 @@ def create_presigned_url(
     return response
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80)#beginning once only
-    app.run(host='0.0.0.0', port=80)
+    #app.run(host='0.0.0.0', port=80)#beginning once only
+    app.run(host='0.0.0.0', port=81 ,ssl_context=context)
