@@ -33,8 +33,8 @@ from bs4 import BeautifulSoup
 
 from email import encoders
 
-app = Flask(__name__)
-CORS(app)
+Server_Status=False
+
 
 ALLOWED_EXTENSIONS = ['.png', '.jpg']
 PATH_MAYAPY = "../../../usr/autodesk/maya2020/bin/mayapy"
@@ -46,7 +46,7 @@ cors_configuration = {
         'AllowedMethods': ['GET','PUT'],
         'AllowedOrigins': ['*'], # replace with https://*.rigme.io once ssl works
         'ExposeHeaders': ['GET'],
-        'MaxAgeSeconds': 86400
+        'MaxAgeSeconds': 840000
     }]
 }
 
@@ -71,42 +71,53 @@ SUBJECT = "3DConvertMe files are ready!"
 CHARSET = "UTF-8"
 
 s3 = boto3.resource('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***", region_name='us-west-2')
+             aws_secret_access_key= "***REMOVED***", region_name=AWS_REGION)
 s3_client = boto3.client('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***", region_name='us-west-2')
+             aws_secret_access_key= "***REMOVED***", region_name=AWS_REGION)
 s3_client.put_bucket_cors(Bucket='rigme-09-2020',
                    CORSConfiguration=cors_configuration)
 ses_client = boto3.client('ses',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
              aws_secret_access_key= "***REMOVED***")
+sqs = boto3.resource('sqs',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
+             aws_secret_access_key= "***REMOVED***")
+sqs_cl = boto3.client('sqs',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
+             aws_secret_access_key= "***REMOVED***")
+lambda_client = boto3.client('lambda',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
+             aws_secret_access_key= "***REMOVED***",region_name=AWS_REGION)
+#sqs_client = sqs_cl.get_queue_by_name(QueueName='rigme_sqs')
 
+#import ssl
+#context = ssl.SSLContext()
+#context.load_cert_chain('STAR_rigme_io.pem','private.key')
+#context.load_verify_locations('STAR_rigme_io_ca.pem')
+#TRUE = buisy, FALSE = free
 
-import ssl
-context = ssl.SSLContext()
-context.load_cert_chain('STAR_rigme_io.pem','private.key')
-context.load_verify_locations('STAR_rigme_io_ca.pem')
+#@app.errorhandler(Exception)
+#def server_error(err):
+#    app.logger.exception(err)
+#    return err, 500
 
-@app.errorhandler(Exception)
-def server_error(err):
-    app.logger.exception(err)
-    return err, 500
-
-@app.route('/')
-def home_endpoint():
-    return 'Welcome to the RigMe API from Jas and Alex!'
-
-@app.route('/api/convert_picture', methods=['POST'])
-def main():
-	if request.method == 'POST':
-		print("Form: " + str(request.form))
-		print("Files: " + str(request.files))
+#@app.route('/')
+#def home_endpoint():
+#    return 'Welcome to the RigMe API from Jas and Alex!'
+import json
+#@app.route('/api/convert_picture', methods=['POST'])
+def pipeline(form):
+	if len(form['file']) > 0:
+		Server_Status = True
+		print("Form: " + str(form))
+		#print("Files: " + str(request.files))
 		try:
-			RECIPIENT =  request.form.get('recepient')
+			RECIPIENT =  form['recepient']
 			ID = str(uuid.uuid1())
 			output = "./output/" + RECIPIENT + ID
 			os.makedirs(output)
-			data_json = request.get_json()
+			#data_json = request.get_json()
 			#image_path = request.files['file']
-			image_data = request.form.get('file')
+			image = json.loads(form['file'])
+			with open(output + '/image_raw_data' , 'wb') as f:
+                               s3_client.download_fileobj('rigme-sqs-bucket', image[1]['s3Key'], f)
+			image_data = open(output + '/image_raw_data', "r").read()
 			header, encoded = image_data.split(",", 1)
 			data = b64decode(encoded)
 			#filename = secure_filename(image_path.filename)
@@ -119,7 +130,7 @@ def main():
 			#fd.write(binary_data)
 			#fd.close()
 			#image_path.save(img)
-			res = request.form.get('resolution')
+			res = form['resolution']
 			print(res)
 			if path.exists(img) != True:
 					raise Exception("Please enter a valid image path")
@@ -165,8 +176,8 @@ def main():
 							print(name)
 							print(root.split('/')[1])
 							print(t)
-							s3.meta.client.upload_file(t,'rigme-09-2020','output/' + ID + '/' + name)
-				
+							s3.meta.client.upload_file(t,'rigme-09-2020','output/' + RECIPIENT + ID + '/' + name)
+				os.rmdir('output/' + RECIPIENT + ID)
 				fbx_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + obj_file + '.fbx')
 				#fbx_file
 			    	
@@ -176,7 +187,7 @@ def main():
 				stl_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + obj_file + '.stl')
 				# stl_file
 		    		
-				obj_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + filename + '_remesh.obj')
+				obj_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + obj_file + '_remesh.obj')
 				# obj_file
 				##Delete local folder
 				shutil.rmtree(output)
@@ -267,14 +278,44 @@ def main():
 				    server.close()
 				except ClientError as e:
 				    print(e.response['Error']['Message'])
+				Server_Status=False
+				timer()
 				return {
 			        	'fbx_url': fbx_url,
 			        	'glb_url':glb_url,
 			        	'stl_url':stl_url,
 			        	'obj_url':obj_url
 			    	}
+				#Server_Status = False
 		except Exception as e:
+			Server_Status = False
+			timer()
 			return str(e)
+
+#@app.route('/api/new_request', methods=['POST'])
+def new_order():
+	try:
+		mesg = sqs_cl.receive_message(QueueUrl='https://sqs.us-west-2.amazonaws.com/235224322090/rigme_sqs',MaxNumberOfMessages=1,MessageAttributeNames=['email'])
+		print(mesg)
+		RECIPIENT = mesg['Messages'][0]['MessageAttributes']['email']['StringValue']
+		img_data = mesg['Messages'][0]['Body']
+		form = {'recepient':RECIPIENT,'file':img_data,'resolution':'78'}
+		print(form)
+		sqs_cl.delete_message(QueueUrl='https://sqs.us-west-2.amazonaws.com/235224322090/rigme_sqs',ReceiptHandle=mesg['Messages'][0]['ReceiptHandle'])
+		pipeline(form)
+		timer()
+	except Exception as e:
+		print(e)
+		timer()
+
+import time
+def timer():
+	print('timer....')
+	time.sleep( 60 )
+	if Server_Status == False:
+		new_order()
+	else:
+		timer()
 
 def convert_to_3d(file_dir, output, res):
 	try:
@@ -329,7 +370,7 @@ def blender_glb_convert(object_dir, joint_text_file_dir, save_path):
 		return False
 
 def create_presigned_url(
-        bucket_name: str, object_name: str, expiration=3600) -> Optional[str]:
+        bucket_name: str, object_name: str, expiration=86400) -> Optional[str]:
     """Generate a presigned URL to share an s3 object
 
     Arguments:
@@ -360,5 +401,4 @@ def create_presigned_url(
     return response
 
 if __name__ == "__main__":
-    #app.run(host='0.0.0.0', port=80)#beginning once only
-    app.run(host='0.0.0.0', port=81 ,ssl_context=context)
+	timer()
