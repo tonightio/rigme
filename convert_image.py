@@ -32,6 +32,7 @@ import codecs
 from bs4 import BeautifulSoup
 
 from email import encoders
+import zipfile
 
 Server_Status=False
 
@@ -169,6 +170,13 @@ def pipeline(form):
 				blender_glb_convert(output + "/pifuhd_final/recon/" + obj_file + "_remesh.obj", output + "/pifuhd_final/recon/" + obj_file + "_remesh_rig.txt", output + "/pifuhd_final/recon/" + obj_file + ".glb")
 				##AWS Upload
 
+				with zipfile.ZipFile(output + "/ALL_FILE.zip", "w") as zf:
+				    zf.write(output + "/pifuhd_final/recon/" + obj_file + "_remesh.obj")
+				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".fbx")
+				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".glb")
+				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".stl")
+				    zf.close()
+
 				for root, dirs, files in os.walk(output, topdown=False):
 					for name in files:
 						if not name.startswith('.'):
@@ -189,13 +197,14 @@ def pipeline(form):
 		    		
 				obj_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + obj_file + '_remesh.obj')
 				# obj_file
+				zip_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/ALL_FILE.zip')
 				##Delete local folder
 				shutil.rmtree(output)
 				#os.rmdir('output/' + ID)
 				with open("email.html", "r", encoding='utf-8') as f:
 				    base_text= f.read()
 
-				t = Template(base_text).safe_substitute(obj = obj_url, stl = stl_url, fbx = fbx_url,glb = glb_url)
+				t = Template(base_text).safe_substitute(obj = obj_url, stl = stl_url, fbx = fbx_url,glb = glb_url, zip = zip_url)
 				USERNAME_SMTP = "***REMOVED***"
 
 # Replace smtp_password with your Amazon SES SMTP password.
