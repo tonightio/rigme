@@ -2,6 +2,9 @@ import os
 import bpy
 import argparse
 import numpy as np
+from math import radians
+from mathutils import Matrix
+
 try:
     import Queue as Q  # ver. < 3.0
 except ImportError:
@@ -252,6 +255,20 @@ class ArmatureGenerator(object):
             mod = self._mesh.modifiers.new('rignet', 'ARMATURE')
             mod.object = arm_obj
 
+def rotate_object(obj,rot_mat):
+    # decompose world_matrix's components, and from them assemble 4x4 matrices
+    orig_loc, orig_rot, orig_scale = obj.matrix_world.decompose()
+    #
+    orig_loc_mat   = Matrix.Translation(orig_loc)
+    orig_rot_mat   = orig_rot.to_matrix().to_4x4()
+    orig_scale_mat = (Matrix.Scale(orig_scale[0],4,(1,0,0)) @ 
+                      Matrix.Scale(orig_scale[1],4,(0,1,0)) @ 
+                      Matrix.Scale(orig_scale[2],4,(0,0,1)))
+    #
+    # assemble the new matrix
+    obj.matrix_world = orig_loc_mat @ rot_mat @ orig_rot_mat @ orig_scale_mat 
+
+
 def get_args():
   parser = argparse.ArgumentParser()
  
@@ -286,9 +303,27 @@ if __name__ == '__main__':
         mesh_obj = bpy.context.selected_objects[0]
     else:
         mesh_obj = None
-
+    #cur = bpy.context.active_object
+    #print(cur)
     ArmatureGenerator(skel_info, mesh_obj).generate()
+    #rotate_object(mesh_obj,(0,0,45))
+
+    
+    #bpy.ops.view3d.zoom(delta=1)
+    
     bpy.ops.export_scene.gltf(filepath=args.save, export_apply=True)#armature_nodetype='ROOT', use_mesh_modifiers = False, use_mesh_modifiers_render=False)
     bpy.ops.export_scene.fbx(filepath=args.save.replace('.glb','.fbx'), use_mesh_modifiers = False, use_mesh_modifiers_render=False)
     bpy.ops.export_mesh.stl('EXEC_SCREEN',filepath=args.save.replace('.glb','.stl'))
+
+    mesh_obj.rotation_euler[2] = radians(15)
+    bpy.ops.view3d.camera_to_view_selected()
+    mesh_obj.scale = (1.5,1.5,1.5)
+    #bpy.data.lights["Light"].data.energy = 500
+    bpy.context.scene.render.image_settings.file_format = 'PNG'
+    bpy.context.scene.render.film_transparent = True
+    bpy.context.scene.render.filepath = args.save.replace('.glb','.png')
+    bpy.context.scene.render.resolution_x = 400 #perhaps set resolution in code
+    bpy.context.scene.render.resolution_y = 400
+    bpy.ops.render.render(write_still = 1)
+
     print('FINISHED')

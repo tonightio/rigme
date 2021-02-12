@@ -30,6 +30,8 @@ from email.mime.base import MIMEBase
 import smtplib
 import codecs
 from bs4 import BeautifulSoup
+from PIL import Image
+
 
 from email import encoders
 import zipfile
@@ -86,7 +88,11 @@ sqs_cl = boto3.client('sqs',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGF
 lambda_client = boto3.client('lambda',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
              aws_secret_access_key= "***REMOVED***",region_name=AWS_REGION)
 #sqs_client = sqs_cl.get_queue_by_name(QueueName='rigme_sqs')
-
+def get_concat_h(im1, im2):
+    dst = Image.new('RGB', (im1.width + im2.width, im1.height))
+    dst.paste(im1, (0, 0))
+    dst.paste(im2, (im1.width, 0))
+    return dst
 #import ssl
 #context = ssl.SSLContext()
 #context.load_cert_chain('STAR_rigme_io.pem','private.key')
@@ -169,12 +175,15 @@ def pipeline(form):
 				print(output + "/pifuhd_final/recon/" + obj_file + ".glb")
 				blender_glb_convert(output + "/pifuhd_final/recon/" + obj_file + "_remesh.obj", output + "/pifuhd_final/recon/" + obj_file + "_remesh_rig.txt", output + "/pifuhd_final/recon/" + obj_file + ".glb")
 				##AWS Upload
-
+				im1 = Image.open(clean_image_path)
+				im2 = Image.open(output + "/pifuhd_final/recon/" + obj_file + ".png")
+				get_concat_h(im1, im2).save(output + "/pifuhd_final/recon/COMBINED.png")
 				with zipfile.ZipFile(output + "/ALL_FILE.zip", "w") as zf:
 				    zf.write(output + "/pifuhd_final/recon/" + obj_file + "_remesh.obj")
 				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".fbx")
 				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".glb")
 				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".stl")
+				    zf.write(output + "/pifuhd_final/recon/COMBINED.png")
 				    zf.close()
 
 				for root, dirs, files in os.walk(output, topdown=False):
@@ -185,7 +194,7 @@ def pipeline(form):
 							print(root.split('/')[1])
 							print(t)
 							s3.meta.client.upload_file(t,'rigme-09-2020','output/' + RECIPIENT + ID + '/' + name)
-				os.rmdir('output/' + RECIPIENT + ID)
+				#os.rmdir('output/' + RECIPIENT + ID)
 				fbx_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/' + obj_file + '.fbx')
 				#fbx_file
 			    	
@@ -199,7 +208,7 @@ def pipeline(form):
 				# obj_file
 				zip_url = create_presigned_url("rigme-09-2020",'output/' + RECIPIENT + ID + '/ALL_FILE.zip')
 				##Delete local folder
-				shutil.rmtree(output)
+				
 				#os.rmdir('output/' + ID)
 				with open("email.html", "r", encoding='utf-8') as f:
 				    base_text= f.read()
@@ -221,6 +230,19 @@ def pipeline(form):
 				htmlpart = MIMEText(t.encode(CHARSET), 'html', CHARSET)
 				msg_body.attach(htmlpart)
 				msg.attach(msg_body)
+				with open(output + "/pifuhd_final/recon/COMBINED.png", 'rb') as f:
+    # set attachment mime and file name, the image type is png
+				    mime = MIMEBase('image', 'png', filename='combined.png')
+    # add required header data:
+				    mime.add_header('Content-Disposition', 'attachment', filename='combined.png')
+				    mime.add_header('X-Attachment-Id', '4')
+				    mime.add_header('Content-ID', '<4>')
+				    # read attachment file content into the MIMEBase object
+				    mime.set_payload(f.read())
+				    # encode with base64
+				    encoders.encode_base64(mime)
+    # add MIMEBase object to MIMEMultipart object
+				    msg.attach(mime)
 				with open('static/obj.png', 'rb') as f:
     # set attachment mime and file name, the image type is png
 				    mime = MIMEBase('image', 'png', filename='obj.png')
@@ -287,6 +309,8 @@ def pipeline(form):
 				    server.close()
 				except ClientError as e:
 				    print(e.response['Error']['Message'])
+
+				shutil.rmtree(output)
 				Server_Status=False
 				timer()
 				return {

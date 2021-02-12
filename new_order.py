@@ -4,9 +4,9 @@ import sqs_extended_client
 app = Flask(__name__)
 
 import ssl
-context = ssl.SSLContext()
-context.load_cert_chain('./cert/STAR_rigme_io.pem','./cert/private.key')
-context.load_verify_locations('./cert/STAR_rigme_io_ca.pem')
+#context = ssl.SSLContext()
+#context.load_cert_chain('./cert/STAR_rigme_io.pem','./cert/private.key')
+#context.load_verify_locations('./cert/STAR_rigme_io_ca.pem')
 
 AWS_REGION = "us-west-2"
 db_client = boto3.client('dynamodb',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
@@ -29,16 +29,16 @@ def new_order():
 		RECIPIENT =  request.form.get('recepient')
 		image_data = request.form.get('file')
 		store=True
-		with open('Master_Email_List.txt', 'r') as f:
-			for line in f:
-           	 	# For each line, check if line contains the string
-				if RECIPIENT in line:
-					store=False
-			f.close()
-		if store:
-			with open('Master_Email_List.txt', 'a') as fi:
-				fi.write(RECIPIENT + ",\n")
-				fi.close()
+		#with open('Master_Email_List.txt', 'r') as f:
+		#	for line in f:
+        #   	 	# For each line, check if line contains the string
+		#		if RECIPIENT in line:
+		#			store=False
+		#	f.close()
+		#if store:
+		#	with open('Master_Email_List.txt', 'a') as fi:
+		#		fi.write(RECIPIENT + ",\n")
+		#		fi.close()
 		queue_t = queue.send_message(MessageBody=image_data, MessageAttributes={'email': {
 	            'StringValue': RECIPIENT,
 	            'DataType': 'String'
