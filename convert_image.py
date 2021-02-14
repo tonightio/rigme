@@ -89,7 +89,7 @@ lambda_client = boto3.client('lambda',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
              aws_secret_access_key= "***REMOVED***",region_name=AWS_REGION)
 #sqs_client = sqs_cl.get_queue_by_name(QueueName='rigme_sqs')
 def get_concat_h(im1, im2):
-    dst = Image.new('RGB', (im1.width + im2.width, im1.height))
+    dst = Image.new('RGBA', (im1.width + im2.width, im1.height),(0,0,0,0))
     dst.paste(im1, (0, 0))
     dst.paste(im2, (im1.width, 0))
     return dst
@@ -177,12 +177,17 @@ def pipeline(form):
 				##AWS Upload
 				im1 = Image.open(clean_image_path)
 				im2 = Image.open(output + "/pifuhd_final/recon/" + obj_file + ".png")
+				print('combining image and obj')
 				get_concat_h(im1, im2).save(output + "/pifuhd_final/recon/COMBINED.png")
+				print('saving to gif')
+				stl_to_gif(output + "/pifuhd_final/recon/" + obj_file + ".stl",output + "/pifuhd_final/recon/" + obj_file)
+
 				with zipfile.ZipFile(output + "/ALL_FILE.zip", "w") as zf:
 				    zf.write(output + "/pifuhd_final/recon/" + obj_file + "_remesh.obj")
 				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".fbx")
 				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".glb")
 				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".stl")
+				    zf.write(output + "/pifuhd_final/recon/" + obj_file + ".gif")
 				    zf.write(output + "/pifuhd_final/recon/COMBINED.png")
 				    zf.close()
 
@@ -230,6 +235,20 @@ def pipeline(form):
 				htmlpart = MIMEText(t.encode(CHARSET), 'html', CHARSET)
 				msg_body.attach(htmlpart)
 				msg.attach(msg_body)
+				with open(output + "/pifuhd_final/recon/" + obj_file + ".gif") as f:
+    # set attachment mime and file name, the image type is png
+				    mime = MIMEBase('image', 'gif', filename='output.gif')
+    # add required header data:
+				    mime.add_header('Content-Disposition', 'attachment', filename='output.gif')
+				    mime.add_header('X-Attachment-Id', '5')
+				    mime.add_header('Content-ID', '<5>')
+				    # read attachment file content into the MIMEBase object
+				    mime.set_payload(f.read())
+				    # encode with base64
+				    encoders.encode_base64(mime)
+    # add MIMEBase object to MIMEMultipart object
+				    msg.attach(mime)
+
 				with open(output + "/pifuhd_final/recon/COMBINED.png", 'rb') as f:
     # set attachment mime and file name, the image type is png
 				    mime = MIMEBase('image', 'png', filename='combined.png')
@@ -243,6 +262,7 @@ def pipeline(form):
 				    encoders.encode_base64(mime)
     # add MIMEBase object to MIMEMultipart object
 				    msg.attach(mime)
+
 				with open('static/obj.png', 'rb') as f:
     # set attachment mime and file name, the image type is png
 				    mime = MIMEBase('image', 'png', filename='obj.png')
@@ -398,6 +418,13 @@ def blender_glb_convert(object_dir, joint_text_file_dir, save_path):
 		#print(model_id)
 		os.system("blender --background --python ./loadskeleton.py -- -o=" + object_dir + " -t=" + joint_text_file_dir + " -s=" + save_path)
 		return True
+	except Exception as e:
+		print(e)
+		return False
+
+def stl_to_gif(input,output):
+	try:
+		os.system("python3 ./STL-To-Gif.py -i " + input + " -o " + output + " --elevation 20")
 	except Exception as e:
 		print(e)
 		return False
