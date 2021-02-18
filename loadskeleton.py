@@ -303,20 +303,36 @@ if __name__ == '__main__':
         mesh_obj = bpy.context.selected_objects[0]
     else:
         mesh_obj = None
+
     #cur = bpy.context.active_object
     #print(cur)
     ArmatureGenerator(skel_info, mesh_obj).generate()
     #rotate_object(mesh_obj,(0,0,45))
-
-    
-    #bpy.ops.view3d.zoom(delta=1)
-    
+    print(mesh_obj.rotation_euler)
+    print('mesh pos ',mesh_obj.location)
+#    print(mesh_obj.getEuler())
     bpy.ops.export_scene.gltf(filepath=args.save, export_apply=True)#armature_nodetype='ROOT', use_mesh_modifiers = False, use_mesh_modifiers_render=False)
     bpy.ops.export_scene.fbx(filepath=args.save.replace('.glb','.fbx'), use_mesh_modifiers = False, use_mesh_modifiers_render=False)
     bpy.ops.export_mesh.stl('EXEC_SCREEN',filepath=args.save.replace('.glb','.stl'))
-
-    mesh_obj.rotation_euler[2] = radians(15)
+    #bpy.context.active_object.rotation_euler[2] = radians(90)
+    #mesh_obj.rotation_euler[0] = radians(90)
+    #mesh_obj.rotation_euler.rotate_axis("Z",radians(90)) #= Euler((0,0,0),'XYZ')
+    print(mesh_obj.rotation_euler)
+   # bpy.ops.view3d.camera_to_view_selected()
+    mesh_obj.rotation_euler = (0,0,0)
+    bpy.data.objects['Camera'].rotation_mode = 'XYZ'
+    #bpy.data.objects['Camera'].rotation_euler[0] = radians(1)
+    bpy.data.objects['Camera'].rotation_euler[0] = -0.2 #1.5708
+    bpy.data.objects['Camera'].rotation_euler[1] = .7
+    bpy.data.objects['Camera'].rotation_euler[2] = 0
+    bpy.data.objects['Camera'].location.x = 7
+    bpy.data.objects['Camera'].location.y = -7
+    bpy.data.objects['Camera'].location.z = 5
     bpy.ops.view3d.camera_to_view_selected()
+#bpy.data.objects['Camera'].rotation_euler[0] = radians(1)
+    print(bpy.data.objects['Camera'].location)
+    print(bpy.data.objects['Camera'].rotation_euler)
+    #bpy.ops.transform.rotate(value=radians(90), orient_axis='Y')
     mesh_obj.scale = (1.5,1.5,1.5)
     #bpy.data.lights["Light"].data.energy = 500
     bpy.context.scene.render.image_settings.file_format = 'PNG'

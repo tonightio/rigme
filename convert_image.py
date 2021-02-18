@@ -164,16 +164,22 @@ def pipeline(form):
 				t = convert_to_3d(output, output, res)
 				print(t)
 				obj_file = "result_" + filename + "_clean_" + res
+				if path.exists(output + "/" + obj_file + "_remesh.obj") != True:
+					raise Exception("OBJ file does not exist")
 				print(output + "/" + obj_file + "_remesh.obj")
 				print(obj_file)
 				print('predicting to 3d rect')
 				obj_rect_convert(output, obj_file)
+				if path.exists(output + "/pifuhd_final/recon/" + obj_file + "_remesh_rig.txt") != True:
+					raise Exception("rig text file does not exist")
 				print('converting to glb')
 				#fbx_convert(obj_file, output)
 				print(output + "/pifuhd_final/recon/" + obj_file + "_remesh.obj")
 				print(output + "/pifuhd_final/recon/" + obj_file + "_remesh_rig.txt")
 				print(output + "/pifuhd_final/recon/" + obj_file + ".glb")
 				blender_glb_convert(output + "/pifuhd_final/recon/" + obj_file + "_remesh.obj", output + "/pifuhd_final/recon/" + obj_file + "_remesh_rig.txt", output + "/pifuhd_final/recon/" + obj_file + ".glb")
+				if path.exists(output + "/pifuhd_final/recon/" + obj_file + ".glb") != True:
+					raise Exception("glb file does not exist")
 				##AWS Upload
 				im1 = Image.open(clean_image_path)
 				im2 = Image.open(output + "/pifuhd_final/recon/" + obj_file + ".png")
@@ -215,7 +221,7 @@ def pipeline(form):
 				##Delete local folder
 				
 				#os.rmdir('output/' + ID)
-				with open("email.html", "r", encoding='utf-8') as f:
+				with open("email.html", "r") as f:
 				    base_text= f.read()
 
 				t = Template(base_text).safe_substitute(obj = obj_url, stl = stl_url, fbx = fbx_url,glb = glb_url, zip = zip_url)
@@ -235,9 +241,9 @@ def pipeline(form):
 				htmlpart = MIMEText(t.encode(CHARSET), 'html', CHARSET)
 				msg_body.attach(htmlpart)
 				msg.attach(msg_body)
-				with open(output + "/pifuhd_final/recon/" + obj_file + ".gif") as f:
+				with open(output + "/pifuhd_final/recon/" + obj_file + ".gif",'rb') as f:
     # set attachment mime and file name, the image type is png
-				    mime = MIMEBase('image', 'gif', filename='output.gif')
+				    mime = MIMEBase('gif', 'gif', filename='output.gif')
     # add required header data:
 				    mime.add_header('Content-Disposition', 'attachment', filename='output.gif')
 				    mime.add_header('X-Attachment-Id', '5')
@@ -341,6 +347,7 @@ def pipeline(form):
 			    	}
 				#Server_Status = False
 		except Exception as e:
+			print(e)
 			Server_Status = False
 			timer()
 			return str(e)
