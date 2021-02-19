@@ -3,18 +3,11 @@ import boto3
 import sqs_extended_client
 app = Flask(__name__)
 
-import ssl
-#context = ssl.SSLContext()
-#context.load_cert_chain('./cert/STAR_rigme_io.pem','./cert/private.key')
-#context.load_verify_locations('./cert/STAR_rigme_io_ca.pem')
 
 AWS_REGION = "us-west-2"
-db_client = boto3.client('dynamodb',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "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",region_name=AWS_REGION)
-sqs = boto3.resource('sqs',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "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")
-sqs_cl = boto3.client('sqs',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "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")
+db_client = boto3.client('dynamodb',region_name=AWS_REGION)
+sqs = boto3.resource('sqs',region_name=AWS_REGION)
+sqs_cl = boto3.client('sqs',region_name=AWS_REGION)
 queue = sqs.get_queue_by_name(QueueName='rigme_sqs')
 queue.large_payload_support = 'rigme-sqs-bucket'
 queue.always_through_s3 = True
@@ -48,4 +41,4 @@ def new_order():
 
 if __name__ == "__main__":
     #app.run(host='0.0.0.0', port=80)#beginning once only
-    app.run(host='0.0.0.0', port=443 ,ssl_context=context)
+    app.run(host='0.0.0.0', port=443) #,ssl_context=context)
