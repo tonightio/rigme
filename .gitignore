@@ -4,3 +4,5 @@ image_background_remove_tool/models/xception_model/model/frozen_inference_graph.
 image_background_remove_tool/models/xception_model/model/model.ckpt.data-00000-of-00001
 image_background_remove_tool/libs/*
 output/*
+rootkey.csv
+rigme-key-EC2.pem
