@@ -73,20 +73,14 @@ SUBJECT = "3DConvertMe files are ready!"
 
 CHARSET = "UTF-8"
 
-s3 = boto3.resource('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***", region_name=AWS_REGION)
-s3_client = boto3.client('s3',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***", region_name=AWS_REGION)
+s3 = boto3.resource('s3', region_name=AWS_REGION)
+s3_client = boto3.client('s3', region_name=AWS_REGION)
 s3_client.put_bucket_cors(Bucket='rigme-09-2020',
                    CORSConfiguration=cors_configuration)
-ses_client = boto3.client('ses',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***")
-sqs = boto3.resource('sqs',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***")
-sqs_cl = boto3.client('sqs',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***")
-lambda_client = boto3.client('lambda',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***",region_name=AWS_REGION)
+ses_client = boto3.client('ses',region_name=AWS_REGION)
+sqs = boto3.resource('sqs',region_name=AWS_REGION)
+sqs_cl = boto3.client('sqs',region_name=AWS_REGION)
+lambda_client = boto3.client('lambda',region_name=AWS_REGION)
 #sqs_client = sqs_cl.get_queue_by_name(QueueName='rigme_sqs')
 def get_concat_h(im1, im2):
     dst = Image.new('RGBA', (im1.width + im2.width, im1.height),(0,0,0,0))
