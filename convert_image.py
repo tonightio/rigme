@@ -87,11 +87,6 @@ def get_concat_h(im1, im2):
     dst.paste(im1, (0, 0))
     dst.paste(im2, (im1.width, 0))
     return dst
-#import ssl
-#context = ssl.SSLContext()
-#context.load_cert_chain('STAR_rigme_io.pem','private.key')
-#context.load_verify_locations('STAR_rigme_io_ca.pem')
-#TRUE = buisy, FALSE = free
 
 #@app.errorhandler(Exception)
 #def server_error(err):
@@ -219,11 +214,12 @@ def pipeline(form):
 				    base_text= f.read()
 
 				t = Template(base_text).safe_substitute(obj = obj_url, stl = stl_url, fbx = fbx_url,glb = glb_url, zip = zip_url)
-				USERNAME_SMTP = "***REMOVED***"
+				
 
 # Replace smtp_password with your Amazon SES SMTP password.
-				PASSWORD_SMTP = "***REMOVED***"
-				HOST = "***REMOVED***"
+				#USERNAME_SMTP =
+				#PASSWORD_SMTP=
+				#HOST = 
 				PORT = 587
 
 				msg = MIMEMultipart('related')

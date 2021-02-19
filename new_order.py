@@ -10,11 +10,11 @@ import ssl
 
 AWS_REGION = "us-west-2"
 db_client = boto3.client('dynamodb',aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***",region_name=AWS_REGION)
+             aws_secret_access_key= "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",region_name=AWS_REGION)
 sqs = boto3.resource('sqs',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***")
+             aws_secret_access_key= "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")
 sqs_cl = boto3.client('sqs',region_name=AWS_REGION,aws_access_key_id="AKIAJE2BGFS3XAF4PBYA",
-             aws_secret_access_key= "***REMOVED***")
+             aws_secret_access_key= "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")
 queue = sqs.get_queue_by_name(QueueName='rigme_sqs')
 queue.large_payload_support = 'rigme-sqs-bucket'
 queue.always_through_s3 = True
