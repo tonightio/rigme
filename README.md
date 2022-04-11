@@ -1,6 +1,6 @@
 # RigMe
 
-![demo](https://github.com/tonightio/rigme/blob/master/demo.jpeg)
+![demo](https://github.com/tonightio/rigme/blob/master/1_wsvCEezTUxgjRkAzdcTdBw.png)
 
 # Python Version
 3.7.2
